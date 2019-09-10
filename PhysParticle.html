@@ -1,0 +1,146 @@
+<!DOCTYPE HTML>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>PhysParticle</title>
+    <canvas id="c"></canvas>
+    <style type="text/css">
+        html, body {
+            height: 100%;
+        }
+        
+        body {
+            background: black;
+            overflow: hidden;
+        }
+        
+        canvas {
+            max-width: 100%;
+        }
+    </style>       
+    <script>
+        window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
+
+        var
+            canvas = document.getElementById("c"),
+            ctx = canvas.getContext("2d"),
+            width = canvas.width = window.innerWidth,
+            height = canvas.height = window.innerHeight,
+            particles = [],
+            particleIndex = 0,
+            grav = .04;
+            color = "white";
+            a = 0;
+
+        function particle(x, y){
+            this.dx = this.random(-0.1, 0.1);
+            this.dy = this.random(-0.1, 0.1);
+//            this.dx = 0;
+ //           this.dy = 0;
+            this.fx = 0;
+            this.fy = 0;
+//            this.r = 0;
+//            this.f = 0;
+            this.x = x;
+            this.y = y;
+            this.index = particleIndex;
+            particles[particleIndex] = this;
+            particleIndex++;
+        }
+        function update(particles){
+            for(var i=0; i<(particles.length-1); i++){
+                particles[i].fx = 0;
+                particles[i].fy = 0;
+            }
+            for (var i=0; i<(particles.length-1); i++){
+                for (var j=0; j<i; j++){
+                    var lx = particles[i].x - particles[j].x;
+                    var ly = particles[i].y - particles[j].y;
+                    var r = lx * lx + ly * ly;
+                    if (r!=0) {
+                        r = Math.sqrt (r);
+                        var f = 70 / (r) - 350 / (r+400);
+                        particles[i].fx = particles[i].fx + f * (lx / r)*0.001;
+                        particles[i].fy = particles[i].fy + f * (ly / r)*0.001;
+                        particles[j].fx = particles[j].fx - f * (lx / r)*0.001;
+                        particles[j].fy = particles[j].fy - f * (ly / r)*0.001;
+                    }
+                }
+            }
+            for(var i=0; i<(particles.length-1); i++){
+                particles[i].dx += particles[i].fx;
+                particles[i].dy += particles[i].fy+0.01;
+                particles[i].x += particles[i].dx;
+                particles[i].y += particles[i].dy;
+                if (particles[i].y > height) {
+                 //   particles[i].y -= particles[i].dy;
+                    particles[i].dy = -particles[i].dy / 1.001;
+                    }
+                if (particles[i].y < 0) {
+                //    particles[i].y -= particles[i].dy;
+                    particles[i].dy = -particles[i].dy / 1.001;
+                    }
+                if (particles[i].x > width) {
+                //    particles[i].x -= particles[i].dx;
+                    particles[i].dx = -particles[i].dx / 1.001;
+                    }
+                if (particles[i].x < 0) {
+                //    particles[i].x -= particles[i].dx;
+                    particles[i].dx = -particles[i].dx / 1.001;
+                    }
+                particles[i].dx = particles[i].dx / 1.01;
+                particles[i].dy = particles[i].dy / 1.01;
+            }
+            return particles;
+        };
+
+        particle.prototype = {
+
+            constructor: particle,
+
+            draw: function(i){
+//                if (i) {ctx.fillStyle = "red";} else {ctx.fillStyle = "white";}
+                ctx.fillRect(this.x, this.y, 1, 1);                
+//                ctx.lineWidth = 1;
+//                ctx.moveTo(this.x, this.y);
+//                ctx.lineTo(this.x + this.fx*100000000, this.y + this.fy*100000000);
+//                console.log(this.fx);
+//                ctx.lineTo(100, 100);
+//                ctx.strokeStyle="white";
+//                ctx.stroke();
+            },
+
+            random: function(){
+            var 
+                min = arguments.length == 1 ? 0 : arguments[0],
+                max = arguments.length == 1 ? arguments[0] : arguments[1];
+            return Math.random() * (max - min) + min;
+            }
+
+        };
+
+        onload = function(){
+            for(var y = height/2-height/3; y < height/2+height/3; y+=15) {
+            for(var x = width/2-width/3; x < width/2+width/3; x+=15) {
+                particles.push(new particle(x, y));}}
+            animate();
+        };
+
+        function animate(){
+            ctx.fillStyle = "black";
+            ctx.fillRect(0,0,width,height);
+            ctx.fillStyle = "white";
+            particles=update(particles);
+            
+            a+=0.003;
+
+            for(var i in particles){
+                particles[i].draw(i==(particles.length-1));
+            }
+            window.requestAnimationFrame(animate);
+        }
+    </script>
